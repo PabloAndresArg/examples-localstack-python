@@ -1,0 +1,7 @@
+docker pull localstack/localstack
+
+docker run -d --name localstack -p 4566:4566 -p 4571:4571 localstack/localstack
+
+
+aws --endpoint-url=http://localhost:4566 s3 ls
+ aws --endpoint-url=http://localhost:4566 s3 ls user-files

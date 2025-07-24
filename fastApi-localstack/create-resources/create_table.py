@@ -1,5 +1,5 @@
 import boto3
-# source /Users/pargueta/Desktop/PRUEBAS/.venv/bin/activate
+
 def create_users_table():
     # Create the DynamoDB resource with LocalStack endpoint
     dynamodb = boto3.resource('dynamodb',

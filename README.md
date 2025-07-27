@@ -1,7 +1,5 @@
 # examples-localstack-python
 
-
-
 ## Librerías necesarias para el proyecto
 
 A continuación, se listan las librerías necesarias para ejecutar este proyecto:
@@ -29,14 +27,13 @@ pip install pydantic
 ```bash
 docker pull localstack/localstack
 docker run -d --name localstack -p 4566:4566 -p 4571:4571 localstack/localstack
-````
-
+```
 
 ## Comandos para levantar el proyecto en desarrollo
-
 
 Sigue los pasos a continuación para iniciar el proyecto en modo desarrollo:
 
 ```bash
+source /Users/pargueta/Desktop/PRUEBAS/.venv/bin/activate
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```

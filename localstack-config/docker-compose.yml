@@ -8,5 +8,7 @@ services:
       - "127.0.0.1:4566:4566"            # Map LocalStack Gateway port
    #   - "127.0.0.1:4510-4559:4510-4559" # Map external services port range
       - "127.0.0.1:8080:8080"            # Map UI port
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
     environment:
       - DEBUG=${DEBUG:-0}

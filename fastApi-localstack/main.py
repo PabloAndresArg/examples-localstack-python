@@ -20,6 +20,7 @@ dynamodb = boto3.resource('dynamodb',
 )
 # Connect to the 'Users' table
 table = dynamodb.Table('Users')
+tableLambda = dynamodb.Table('MyTableDynamo')
 
 # Configure S3 client with LocalStack settings
 s3 = boto3.client('s3',
@@ -30,7 +31,7 @@ s3 = boto3.client('s3',
 )
 
 # S3 bucket name
-BUCKET_NAME = "user-files"
+BUCKET_NAME = "my-bucket"
 
 # Define the data model for User using Pydantic
 class User(BaseModel):
@@ -87,45 +88,36 @@ async def get_user(user_id: str):
 
 
 
-# POST endpoint to export all users to S3 as a text file
 @app.post("/s3/export", response_model=dict)
-async def export_users_to_s3():
+async def export_to_s3():
     try:
-        print("Exporting users to S3...")
-        # Scan the DynamoDB table to get all users
-        response = table.scan()
-        users = response.get('Items', [])
-        
-        # Continue scanning if we haven't got all users
+        response = tableLambda.scan()
+        records = response.get('Items', [])
         while 'LastEvaluatedKey' in response:
-            response = table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
-            users.extend(response.get('Items', []))
-        
-        if not users:
-            return {"message": "No users found to export"}
-        
-        # Format the users data as text
-        users_text = ""
-        for user in users:
-            users_text += f"ID: {user.get('id', 'N/A')}, Nombre: {user.get('nombre', 'N/A')}\n"
-        
+            response = tableLambda.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
+            records.extend(response.get('Items', []))
+        if not records:
+            return {"message": "No records found to export"}
+        # Format the records data as text
+        records_text = ""
+        for r in records:
+            records_text += f"ID: {r.get('id', 'N/A')}, Body: {r.get('body', 'N/A')}\n"
         # Generate a filename with timestamp
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"users_export_{timestamp}.txt"
-        
+        filename = f"records_export_{timestamp}.txt"
+
         # Upload the text file to S3
         s3.put_object(
             Bucket=BUCKET_NAME,
             Key=filename,
-            Body=users_text,
+            Body=records_text,
             ContentType='text/plain'
         )
-        
         return {
-            "message": "Users exported successfully",
+            "message": "Records exported successfully",
             "file_name": filename,
             "bucket": BUCKET_NAME,
-            "user_count": len(users)
+            "records_count": len(records_text)
         }
     except Exception as e:
         # Handle any errors during the process

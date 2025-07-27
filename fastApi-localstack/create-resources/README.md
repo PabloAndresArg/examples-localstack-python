@@ -9,8 +9,8 @@ brew install watch
 ## crear un S3 y listar
 
 ````bash
-awslocal s3 mb s3://user-files
+awslocal s3 mb s3://my-bucket
 awslocal --endpoint-url=http://localhost:4566 s3 ls
-awslocal --endpoint-url=http://localhost:4566 s3 ls user-files
+awslocal --endpoint-url=http://localhost:4566 s3 ls my-bucket
 ````
 

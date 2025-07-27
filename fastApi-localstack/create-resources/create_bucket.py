@@ -11,8 +11,8 @@ def create_s3_bucket():
 
     # Create the bucket
     try:
-        s3.create_bucket(Bucket='user-files')
-        print("S3 bucket 'user-files' created successfully!")
+        s3.create_bucket(Bucket='my-bucket')
+        print("S3 bucket 'my-bucket' created successfully!")
     except Exception as e:
         print(f"Error creating bucket: {str(e)}")
 

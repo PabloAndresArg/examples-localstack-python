@@ -1,86 +1,28 @@
-# Import necessary libraries
-from fastapi import FastAPI, HTTPException  # FastAPI framework and HTTP error handling
-from fastapi.responses import PlainTextResponse  # For returning text files
-import boto3                               # AWS SDK for Python
-from datetime import datetime              # For timestamping files
-from botocore.exceptions import ClientError # For handling S3 specific errors
-from dotenv import load_dotenv
-import os
-load_dotenv()
-URL = os.getenv("AWS_ENDPOINT_URL") # LocalStack endpoint
+"""Main application module.
+
+This module initializes and configures the FastAPI application.
+"""
+from fastapi import FastAPI
+from app.config.aws_config import AWSConfig
+from app.services.s3_service import S3Service
+from app.services.dynamo_service import DynamoService
+from app.routes import s3_routes
 
 # Initialize FastAPI application
-app = FastAPI()
+app = FastAPI(title="S3 Export API", description="API for exporting DynamoDB records to S3")
 
-# Configure DynamoDB and S3 client with LocalStack settings
-dynamodb = boto3.resource('dynamodb',
-    endpoint_url=URL,
-)
-s3 = boto3.client('s3',
-    endpoint_url=URL,
-)
+# Configure AWS services
+aws_config = AWSConfig()
+dynamodb = aws_config.get_dynamodb_resource()
+s3_client = aws_config.get_s3_client()
 
+# Initialize services
+table_dynamo = dynamodb.Table(aws_config.table_name)
+dynamo_service = DynamoService(table_dynamo)
+s3_service = S3Service(s3_client, aws_config.bucket_name)
 
-TABLE_DYNAMO = dynamodb.Table('MyTableDynamo')
-BUCKET_NAME = "my-bucket"
-
-
-
-@app.post("/s3/export", response_model=dict)
-async def export_to_s3():
-    try:
-        response = TABLE_DYNAMO.scan()
-        records = response.get('Items', [])
-        while 'LastEvaluatedKey' in response:
-            response = TABLE_DYNAMO.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
-            records.extend(response.get('Items', []))
-        if not records:
-            return {"message": "No records found to export"}
-        # Format the records data as text
-        records_text = ""
-        for r in records:
-            records_text += f"ID: {r.get('id', 'N/A')}, Body: {r.get('body', 'N/A')}\n"
-        # Generate a filename with timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"records_export_{timestamp}.txt"
-
-        # Upload the text file to S3
-        s3.put_object(
-            Bucket=BUCKET_NAME,
-            Key=filename,
-            Body=records_text,
-            ContentType='text/plain'
-        )
-        return {
-            "message": "Records exported successfully",
-            "file_name": filename,
-            "bucket": BUCKET_NAME,
-            "records_count": len(records)
-        }
-    except Exception as e:
-        # Handle any errors during the process
-        raise HTTPException(status_code=500, detail=str(e))
-
-# GET endpoint to retrieve a text file from S3
-@app.get("/s3/get-file/{filename}", response_class=PlainTextResponse)
-async def get_file(filename: str):
-    try:
-        print(f"Retrieving file: {filename} from S3...")
-        # Get the object from S3
-        response = s3.get_object(
-            Bucket=BUCKET_NAME,
-            Key=filename
-        )
-        # Read the file content
-        file_content = response['Body'].read().decode('utf-8')
-
-        return file_content
-    except ClientError as e:
-        if e.response['Error']['Code'] == 'NoSuchKey':
-            raise HTTPException(status_code=404, detail="File not found")
-        raise HTTPException(status_code=500, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# Include routes
+app.include_router(s3_routes.initialize_router(s3_service, dynamo_service))
 
 # Run the application if this file is executed directly
 if __name__ == "__main__":

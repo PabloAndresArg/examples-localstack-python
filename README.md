@@ -1,6 +1,9 @@
 # 🚀 examples-localstack-python
 
-## 🐳 Instalación LocalStack mediante Docker
+
+![1754202473402](docs/1754202473402.png)
+
+# 🐳 Instalación LocalStack mediante Docker
 
 ```bash
 docker pull localstack/localstack
@@ -9,7 +12,7 @@ docker run -d --name localstackdev -p 4566:4566 -p 4571:4571 -v localstack-data:
 
 # ⚡ Desplegar y conectar Lambda con SQS en LocalStack
 
-## 🟢 0. Activar el ambiente virtual porque usaremos awslocal
+##### 🟢 0. Activar el ambiente virtual porque usaremos awslocal
 
 ```bash
 cd lambda
@@ -18,13 +21,13 @@ source .venv/bin/activate
 pip3 install awscli-local
 ```
 
-## 📦 1. Empaquetar la función Lambda
+##### 📦 1. Empaquetar la función Lambda
 
 ```bash
 zip lambda_function.zip handler.py
 ```
 
-## 📝 2. Crear la función Lambda en LocalStack
+##### 📝 2. Crear la función Lambda en LocalStack
 
 ```bash
 awslocal lambda create-function \
@@ -37,7 +40,7 @@ awslocal lambda create-function \
 awslocal lambda list-functions
 ```
 
-## 🗄️ 3. Crear la tabla donde almacenaremos los mensajes
+##### 🗄️ 3. Crear la tabla donde almacenaremos los mensajes
 
 ```bash
 awslocal dynamodb create-table \
@@ -47,7 +50,7 @@ awslocal dynamodb create-table \
     --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5
 ```
 
-## 📬 4. Crear una cola para enviar y escuchar mensajes
+##### 📬 4. Crear una cola para enviar y escuchar mensajes
 
 ```bash
 awslocal sqs create-queue --queue-name queue-for-example-lambda
@@ -55,7 +58,7 @@ awslocal sqs list-queues
 
 ```
 
-## 🔑 5. Dar permiso a la Lambda para SQS y DynamoDB
+##### 🔑 5. Dar permiso a la Lambda para SQS y DynamoDB
 
 ```bash
 
@@ -75,7 +78,7 @@ awslocal lambda add-permission \
   --source-arn arn:aws:dynamodb:us-east-1:000000000000:table/MyTableDynamo
 ```
 
-## 🔗 6. Conectar la SQS con la Lambda para que cada mensaje que llegue se procese por la Lambda
+##### 🔗 6. Conectar la SQS con la Lambda para que cada mensaje que llegue se procese por la Lambda
 
 ```bash
 awslocal lambda create-event-source-mapping \
@@ -83,7 +86,7 @@ awslocal lambda create-event-source-mapping \
   --event-source-arn arn:aws:sqs:us-east-1:000000000000:queue-for-example-lambda
 ```
 
-## ✉️ 7. Enviar un mensaje de prueba a la SQS
+##### ✉️ 7. Enviar un mensaje de prueba a la SQS
 
 ```bash
 awslocal sqs send-message \
@@ -105,7 +108,7 @@ awslocal sqs send-message \
 
 # 🌐 Levantar API
 
-## 🗂️ Crear el S3 de reporte
+##### 🗂️ Crear el S3 de reporte
 
 ```bash
 awslocal s3 mb s3://my-bucket

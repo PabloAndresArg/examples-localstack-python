@@ -1,4 +1,8 @@
 *.zip
 *.venv
 *.env
+*.backup
+*.hcl
+*.tfstate
+.terraform
 __pycache__/

@@ -4,18 +4,20 @@ from fastapi.responses import PlainTextResponse  # For returning text files
 import boto3                               # AWS SDK for Python
 from datetime import datetime              # For timestamping files
 from botocore.exceptions import ClientError # For handling S3 specific errors
+from dotenv import load_dotenv
+import os
+load_dotenv()
+URL = os.getenv("AWS_ENDPOINT_URL") # LocalStack endpoint
 
 # Initialize FastAPI application
 app = FastAPI()
 
-# Configure DynamoDB client with LocalStack settings
+# Configure DynamoDB and S3 client with LocalStack settings
 dynamodb = boto3.resource('dynamodb',
-    endpoint_url='http://localhost:4566',      # LocalStack endpoint
-
+    endpoint_url=URL,
 )
-# Configure S3 client with LocalStack settings
 s3 = boto3.client('s3',
-    endpoint_url='http://localhost:4566',      # LocalStack endpoint
+    endpoint_url=URL,
 )
 
 

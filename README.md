@@ -111,7 +111,7 @@ awslocal sqs send-message \
 awslocal s3 mb s3://my-bucket
 ```
 
-⚠️ **ABRE OTRA TERMINAL**
+⚠️ **ABRIR OTRA TERMINAL**
 
 Crea un entorno virtual de Python, que es un espacio aislado para trabajar en proyectos.
 
@@ -133,4 +133,8 @@ comandos para levantar el api:
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-⚠️ **LLamar al endpoint POST /s3/export**
+
+**LLamar al endpoint POST /s3/export para generar un documento en el S3**
+
+Puedes usar la extesion de EchoApi:
+![1754197421445](docs/1754197421445.png)

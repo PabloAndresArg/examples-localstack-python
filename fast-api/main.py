@@ -1,10 +1,7 @@
 # Import necessary libraries
 from fastapi import FastAPI, HTTPException  # FastAPI framework and HTTP error handling
 from fastapi.responses import PlainTextResponse  # For returning text files
-from pydantic import BaseModel, Field      # For data validation and schema definition
 import boto3                               # AWS SDK for Python
-from typing import Optional                # For optional type hints
-import json                                # For JSON serialization
 from datetime import datetime              # For timestamping files
 from botocore.exceptions import ClientError # For handling S3 specific errors
 
@@ -14,87 +11,26 @@ app = FastAPI()
 # Configure DynamoDB client with LocalStack settings
 dynamodb = boto3.resource('dynamodb',
     endpoint_url='http://localhost:4566',      # LocalStack endpoint
-    aws_access_key_id='test',                 # Mock AWS credentials for local testing
-    aws_secret_access_key='test',             # Mock AWS credentials for local testing
-    region_name='us-east-1'                   # AWS region setting
-)
-# Connect to the 'Users' table
-table = dynamodb.Table('Users')
-tableLambda = dynamodb.Table('MyTableDynamo')
 
+)
 # Configure S3 client with LocalStack settings
 s3 = boto3.client('s3',
     endpoint_url='http://localhost:4566',      # LocalStack endpoint
-    aws_access_key_id='test',                 # Mock AWS credentials for local testing
-    aws_secret_access_key='test',             # Mock AWS credentials for local testing
-    region_name='us-east-1'                   # AWS region setting
 )
 
-# S3 bucket name
+
+TABLE_DYNAMO = dynamodb.Table('MyTableDynamo')
 BUCKET_NAME = "my-bucket"
-
-# Define the data model for User using Pydantic
-class User(BaseModel):
-    # Define required fields with validation
-    id: str = Field(..., min_length=1, description="User ID")
-    nombre: str = Field(..., min_length=1, description="User name")
-
-    # Provide example data for API documentation
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "id": "1",
-                "nombre": "Juan"
-            }
-        }
-
-# POST endpoint to create a new user
-@app.post("/users/", response_model=dict)
-async def create_user(user: User):
-    try:
-        # Insert the user data into DynamoDB
-        table.put_item(
-            Item={
-                'id': user.id,
-                'nombre': user.nombre
-            }
-        )
-        # Return success message with user data
-        return {"message": "User created successfully", "user": user.dict()}
-    except Exception as e:
-        # Handle any errors during the process
-        raise HTTPException(status_code=500, detail=str(e))
-
-# GET endpoint to retrieve a user by ID
-@app.get("/users/{user_id}")
-async def get_user(user_id: str):
-    try:
-        # Query DynamoDB for the user with the specified ID
-        response = table.get_item(
-            Key={
-                'id': user_id
-            }
-        )
-        
-        # Check if user exists
-        if 'Item' not in response:
-            raise HTTPException(status_code=404, detail="User not found")
-        
-        # Return the user data    
-        return response['Item']
-    except Exception as e:
-        # Handle any errors during the process
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 
 @app.post("/s3/export", response_model=dict)
 async def export_to_s3():
     try:
-        response = tableLambda.scan()
+        response = TABLE_DYNAMO.scan()
         records = response.get('Items', [])
         while 'LastEvaluatedKey' in response:
-            response = tableLambda.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
+            response = TABLE_DYNAMO.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
             records.extend(response.get('Items', []))
         if not records:
             return {"message": "No records found to export"}
@@ -117,7 +53,7 @@ async def export_to_s3():
             "message": "Records exported successfully",
             "file_name": filename,
             "bucket": BUCKET_NAME,
-            "records_count": len(records_text)
+            "records_count": len(records)
         }
     except Exception as e:
         # Handle any errors during the process
@@ -133,10 +69,9 @@ async def get_file(filename: str):
             Bucket=BUCKET_NAME,
             Key=filename
         )
-        
         # Read the file content
         file_content = response['Body'].read().decode('utf-8')
-        
+
         return file_content
     except ClientError as e:
         if e.response['Error']['Code'] == 'NoSuchKey':

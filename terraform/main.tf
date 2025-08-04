@@ -9,11 +9,13 @@ terraform {
 
 # AWS provider configuration for LocalStack
 provider "aws" {
+  region                      = "us-east-1"
   access_key                  = "test"
   secret_key                  = "test"
   skip_credentials_validation = true
   skip_metadata_api_check     = true
   skip_requesting_account_id  = true
+  s3_use_path_style           = true
 
   endpoints {
     lambda   = "http://localhost:4566"
@@ -101,4 +103,18 @@ resource "aws_lambda_event_source_mapping" "sqs_lambda" {
   event_source_arn = aws_sqs_queue.my_queue.arn
   function_name    = aws_lambda_function.my_lambda.function_name
   enabled          = true
+}
+
+resource "aws_s3_bucket" "my_bucket" {
+  bucket = "my-bucket"
+
+  tags = {
+    Name        = "MyExampleBucket"
+    Environment = "Development"
+  }
+}
+
+resource "aws_s3_bucket_acl" "my_bucket_acl" {
+  bucket = aws_s3_bucket.my_bucket.id
+  acl    = "private"
 }

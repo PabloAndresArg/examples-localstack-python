@@ -141,3 +141,24 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 🧩 Puedes usar la extensión de EchoApi:
 ![1754197421445](docs/1754197421445.png)
+
+
+# INTEGRACIÓN CON TERRAFORM
+
+ingresamos a la carpeta de terraform:
+
+```bash
+cd terraform
+```
+creamos la infra:
+```bash
+terraform init
+terraform apply -auto-approve
+```
+probamos la infra:
+
+```bash
+awslocal sqs send-message \
+  --queue-url http://localhost:4566/000000000000/queue-for-example-lambda \
+  --message-body "{ 'msg': 'mensaje con infra de terraform'}"
+```

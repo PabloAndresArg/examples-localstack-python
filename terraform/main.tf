@@ -7,7 +7,7 @@ terraform {
   }
 }
 
-# Configuración del provider AWS para LocalStack
+# AWS provider configuration for LocalStack
 provider "aws" {
   access_key                  = "test"
   secret_key                  = "test"
@@ -44,7 +44,7 @@ resource "aws_sqs_queue" "my_queue" {
 }
 
 
-# IAM Role para Lambda
+# IAM Role for Lambda
 resource "aws_iam_role" "lambda_role" {
   name = "lambda-role"
 
@@ -62,7 +62,7 @@ resource "aws_iam_role" "lambda_role" {
   })
 }
 
-# Política para permitir acceso a SQS y DynamoDB
+# Policy to allow access to SQS and DynamoDB
 resource "aws_iam_role_policy" "lambda_policy" {
   name = "lambda-policy"
   role = aws_iam_role.lambda_role.id
@@ -96,7 +96,7 @@ resource "aws_lambda_function" "my_lambda" {
   depends_on = [aws_iam_role_policy.lambda_policy]
 }
 
-# Event Source Mapping entre SQS y Lambda
+# Event Source Mapping SQS and Lambda
 resource "aws_lambda_event_source_mapping" "sqs_lambda" {
   event_source_arn = aws_sqs_queue.my_queue.arn
   function_name    = aws_lambda_function.my_lambda.function_name

@@ -158,6 +158,9 @@ terraform apply -auto-approve
 probamos la infra:
 
 ```bash
+cd ..
+cd lambda
+source .venv/bin/activate
 awslocal sqs send-message \
   --queue-url http://localhost:4566/000000000000/queue-for-example-lambda \
   --message-body "{ 'msg': 'mensaje con infra de terraform'}"

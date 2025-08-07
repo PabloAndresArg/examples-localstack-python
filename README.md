@@ -3,6 +3,16 @@
 
 ![1754202473402](docs/1754202473402.png)
 
+# Prerrequisitos
+
+Asegúrate de tener instaladas las siguientes herramientas:
+
+- [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)  
+  Requerido para interactuar con servicios de AWS desde la línea de comandos.
+
+- [Docker](https://docs.docker.com/engine/install)  
+  Necesario para ejecutar contenedores localmente.
+
 # 🐳 Instalación LocalStack mediante Docker
 
 ```bash
@@ -17,6 +27,9 @@ docker run -d --name localstackdev -p 4566:4566 -p 4571:4571 -v localstack-data:
 ```bash
 cd lambda
 python3 -m venv .venv
+# Windows
+source .venv/scripts/activate
+# MAC/LINUX
 source .venv/bin/activate
 pip3 install awscli-local
 ```
@@ -24,7 +37,9 @@ pip3 install awscli-local
 ##### 📦 1. Empaquetar la función Lambda
 
 ```bash
+# MAC
 zip lambda_function.zip handler.py
+# windows click derecho y buscar la opcion para comprimir en zip
 ```
 
 ##### 📝 2. Crear la función Lambda en LocalStack
@@ -121,6 +136,9 @@ awslocal s3 mb s3://my-bucket
 ```bash
 cd fast-api
 python3 -m venv .venv
+# Windows
+source .venv/scripts/activate
+# MAC/LINUX
 source .venv/bin/activate
 ```
 
